@@ -7,6 +7,9 @@ import {
   Dimensions,
   TouchableOpacity,
   PermissionsAndroid,
+  Modal,
+  Button,
+  TextInput
 } from 'react-native';
 
 
@@ -27,6 +30,15 @@ const styles = StyleSheet.create({
     zIndex: 2,
     bottom: 50,
   },
+  buttonWrapper2: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: Dimensions.get('window').width,
+    height: 50,
+    position: 'absolute',
+    zIndex: 2,
+    top: 50,
+  },
   button: {
     width: 200,
     height: 40,
@@ -36,9 +48,21 @@ const styles = StyleSheet.create({
     paddingLeft: 15,
     paddingRight: 15,
   },
+  redtext: {
+    width: 500,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 15,
+    paddingRight: 15,
+  },
   buttonText: {
     color: '#ffffff',
     fontFamily: 'system',
+  },
+  buttonText2: {
+    color: 'red',
+    fontFamily: 'roboto',
   },
 });
 
@@ -66,6 +90,8 @@ class App extends React.Component {
 
   state = {
     isStreaming: false,
+    dispmodal:false,
+    urlval:"192.168.0.3"
   };
 
 
@@ -78,13 +104,8 @@ class App extends React.Component {
   };
 
 
-  cameraSettings = {cameraId: 1, cameraFrontMirror: true};
 
 
-  audioSettings = {bitrate: 32000, profile: 1, samplerate: 44100};
-
-
-  channel = 'nodeskwela';
 
 
   get height() {
@@ -112,14 +133,59 @@ class App extends React.Component {
   };
 
 
+  getUrl = () => {
+    if(!this.state.isStreaming){
+    this.setState({
+      dispmodal: !this.state.dispmodal,
+    });
+    }
+    else{
+      this.toggleStream();
+    }
+  }
+
+  handleUrlIpChange = ()=>{
+
+  }
+  handleStreamClick = ()=>{
+    this.toggleStream();
+    this.setState({dispmodal: !this.state.dispmodal})
+  }
+
   render() {
     const streamKey = 'abc';
-  const url = `rtmp://192.168.0.3/stream/${streamKey}`;
+    const url = `rtmp://${this.state.urlval}/stream/${streamKey}`;
 
     return (
       <>
         <StatusBar barStyle="dark-content" />
+          <Modal            
+          animationType = {"fade"}  
+          transparent = {false}  
+          visible = {this.state.dispmodal}  
+          onRequestClose = {() =>{ console.log("Modal has been closed.") } }>  
+          {/*All views of Modal*/}  
+              <View style = {{justifyContent: 'center',  
+                alignItems: 'center',   
+                backgroundColor : "#ffffff",   
+                height: 300 ,  
+                width: '80%',  
+                borderRadius:10,  
+                borderWidth: 1,  
+                borderColor: '#fff',    
+                marginTop: 80,  
+                marginLeft: 40,  }}>  
+              <Text style = {styles.text}>Enter your PC's/laptop's IP address</Text>  
+                <TextInput
+                  style={{ height: 40,margin:10, borderColor: 'gray', borderWidth: 1 }}
+                  onChangeText={text => this.setState({urlval: text})}
+                  value={this.state.urlval}
+                />
+              <Button title="Stream now!" onPress = {this.handleStreamClick}/>  
+          </View>  
+        </Modal>  
         <View style={styles.view}>
+          
           <NodeCameraView
             style={{
               height: this.height,
@@ -135,8 +201,22 @@ class App extends React.Component {
         audio={config.audioConfig}
         video={config.videoConfig}
             autopreview={true}></NodeCameraView>
+
+            {this.state.isStreaming?<View style={styles.buttonWrapper2}>
+            <TouchableOpacity>
+              <View style={styles.redtext}>
+                <Text style={styles.buttonText2}>
+                  Streaming to
+                </Text>
+                <Text style={styles.buttonText2}>{url}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>:null}
+
+
+
           <View style={styles.buttonWrapper}>
-            <TouchableOpacity onPress={this.toggleStream}>
+            <TouchableOpacity onPress={this.getUrl}>
               <View style={styles.button}>
                 <Text style={styles.buttonText}>
                   {this.state.isStreaming
